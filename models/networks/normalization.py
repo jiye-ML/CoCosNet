@@ -9,12 +9,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 from models.networks.sync_batchnorm import SynchronizedBatchNorm2d
 import torch.nn.utils.spectral_norm as spectral_norm
+
 try:
     import apex
     from apex import amp
 except:
     print('apex not found')
     pass
+
 
 # Returns a function that creates a normalization function
 # that does not condition on semantic map
@@ -60,12 +62,14 @@ def get_nonspade_norm_layer(opt, norm_type='instance'):
 
     return add_norm_layer
 
+
 def PositionalNorm2d(x, epsilon=1e-5):
     # x: B*C*W*H normalize in C dim
     mean = x.mean(dim=1, keepdim=True)
     std = x.var(dim=1, keepdim=True).add(epsilon).sqrt()
     output = (x - mean) / std
     return output
+
 
 # Creates SPADE normalization layer based on the given configuration
 # SPADE consists of two steps. First, it normalizes the activations using
@@ -120,9 +124,9 @@ class SPADE(nn.Module):
             self.mlp_beta = nn.Conv2d(nhidden, norm_nc, kernel_size=ks, padding=0)
         else:
             self.mlp_shared = nn.Sequential(
-                    nn.Conv2d(label_nc, nhidden, kernel_size=ks, padding=pw),
-                    nn.ReLU()
-                )
+                nn.Conv2d(label_nc, nhidden, kernel_size=ks, padding=pw),
+                nn.ReLU()
+            )
             self.mlp_gamma = nn.Conv2d(nhidden, norm_nc, kernel_size=ks, padding=pw)
             self.mlp_beta = nn.Conv2d(nhidden, norm_nc, kernel_size=ks, padding=pw)
 
@@ -149,6 +153,7 @@ class SPADE(nn.Module):
         out = normalized * (1 + gamma) + beta
 
         return out
+
 
 class SPADE_TwoPath(nn.Module):
     def __init__(self, config_text, norm_nc, label_nc_example, label_nc_imagine, PONO=False, use_apex=False):
@@ -198,16 +203,16 @@ class SPADE_TwoPath(nn.Module):
             self.mlp_beta_imagine = nn.Conv2d(nhidden, norm_nc, kernel_size=ks, padding=0)
         else:
             self.mlp_shared_example = nn.Sequential(
-                    nn.Conv2d(label_nc_example, nhidden, kernel_size=ks, padding=pw),
-                    nn.ReLU()
-                )
+                nn.Conv2d(label_nc_example, nhidden, kernel_size=ks, padding=pw),
+                nn.ReLU()
+            )
             self.mlp_gamma_example = nn.Conv2d(nhidden, norm_nc, kernel_size=ks, padding=pw)
             self.mlp_beta_example = nn.Conv2d(nhidden, norm_nc, kernel_size=ks, padding=pw)
 
             self.mlp_shared_imagine = nn.Sequential(
-                    nn.Conv2d(label_nc_imagine, nhidden, kernel_size=ks, padding=pw),
-                    nn.ReLU()
-                )
+                nn.Conv2d(label_nc_imagine, nhidden, kernel_size=ks, padding=pw),
+                nn.ReLU()
+            )
             self.mlp_gamma_imagine = nn.Conv2d(nhidden, norm_nc, kernel_size=ks, padding=pw)
             self.mlp_beta_imagine = nn.Conv2d(nhidden, norm_nc, kernel_size=ks, padding=pw)
 
@@ -240,9 +245,11 @@ class SPADE_TwoPath(nn.Module):
 
         return out
 
+
 class EqualLR:
     def __init__(self, name):
         self.name = name
+
     def compute_weight(self, module):
         weight = getattr(module, self.name + '_orig')
         fan_in = weight.data.size(1) * weight.data[0][0].numel()
@@ -256,6 +263,7 @@ class EqualLR:
         module.register_parameter(name + '_orig', nn.Parameter(weight.data))
         module.register_forward_pre_hook(fn)
         return fn
+
     def __call__(self, module, input):
         weight = self.compute_weight(module)
         setattr(module, self.name, weight)

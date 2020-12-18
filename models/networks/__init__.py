@@ -8,10 +8,10 @@ from models.networks.base_network import BaseNetwork
 from models.networks.loss import *
 from models.networks.discriminator import *
 from models.networks.generator import *
-#from models.networks.encoder import *
+# from models.networks.encoder import *
 from models.networks.ContextualLoss import *
 from models.networks.correspondence import *
-#from models.networks.progressive_sub_net import *
+# from models.networks.progressive_sub_net import *
 import util.util as util
 
 
@@ -21,7 +21,7 @@ def find_network_using_name(target_network_name, filename, add=True):
     network = util.find_class_in_module(target_class_name, module_name)
 
     assert issubclass(network, BaseNetwork), \
-       "Class %s should be a subclass of BaseNetwork" % network
+        "Class %s should be a subclass of BaseNetwork" % network
 
     return network
 
@@ -47,7 +47,7 @@ def create_network(cls, opt, stage1=False):
         net = cls(opt)
     net.print_network()
     if len(opt.gpu_ids) > 0:
-        assert(torch.cuda.is_available())
+        assert (torch.cuda.is_available())
         net.cuda()
     net.init_weights(opt.init_type, opt.init_variance)
     return net
@@ -57,21 +57,26 @@ def define_G(opt):
     netG_cls = find_network_using_name(opt.netG, 'generator')
     return create_network(netG_cls, opt)
 
+
 def define_G_stage1(opt):
     netG_cls = find_network_using_name(opt.netG, 'generator')
     return create_network(netG_cls, opt, stage1=True)
+
 
 def define_D(opt):
     netD_cls = find_network_using_name(opt.netD, 'discriminator')
     return create_network(netD_cls, opt)
 
+
 def define_D_stage1(opt):
     netD_cls = find_network_using_name(opt.netD, 'discriminator')
     return create_network(netD_cls, opt, stage1=True)
 
+
 def define_DomainClassifier(opt):
     netDomainclassifier = find_network_using_name('DomainClassifier', 'generator', add=False)
     return create_network(netDomainclassifier, opt)
+
 
 def define_Corr(opt):
     netCoor_cls = find_network_using_name('novgg', 'correspondence')
